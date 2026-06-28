@@ -8,7 +8,13 @@
       "Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"
     ],
     "whatsapp_id": "557139010960",
-    "visitas": [],
+    "visitas": [
+      {
+        "data": "2026-06-28",
+        "tipo": "Presencial",
+        "observacao": "teste"
+      }
+    ],
     "email": "",
     "whatsapp_business_nome": "Dr Bruno Falcão"
   },
