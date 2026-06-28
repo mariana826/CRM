@@ -313,8 +313,7 @@ function getDDD(t){if(!t)return'';var m=t.match(/\((\d{2})\)/);return m?m[1]:''}
 
 function statusBadge(s){var c=STATUS_CLASS[s]||'s-contato';return'<span class="badge-status '+c+'">'+s+'</span>'}
 
-var GH_TOKEN='',GH_REPO='',GH_PATH='contatos_consolidado.json',CFG={token:'',repo:'',autoDownload:false};
-try{CFG=Object.assign(CFG,JSON.parse(localStorage.getItem('move_crm_cfg')||'{}'));GH_TOKEN=CFG.token;GH_REPO=CFG.repo}catch(e){}
+var GH_TOKEN='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',GH_REPO='mariana826/CRM',GH_PATH='contatos_consolidado.json',CFG={token:GH_TOKEN,repo:GH_REPO,autoDownload:false};
 
 function carregarDados(cb){
   fetch('contatos_consolidado.json').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(d){
