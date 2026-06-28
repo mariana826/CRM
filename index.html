@@ -340,6 +340,7 @@ function salvarEExportar(){
   fetch('http://localhost:3000/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(DATA)}).catch(function(){});
   if(GH_TOKEN&&GH_REPO){enviarGitHub()}
   if(CFG.autoDownload){downloadAuto()}
+  setTimeout(function(){if(GH_TOKEN&&GH_REPO||window.location.protocol!=='file:')sincronizar()},2000)
 }
 
 function downloadAuto(){var jsonStr=JSON.stringify(DATA,null,2);var blob=new Blob([jsonStr],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='contatos_consolidado.json';a.click();URL.revokeObjectURL(url)}
@@ -363,7 +364,7 @@ document.getElementById('filterEspec').addEventListener('change',renderData);
 document.getElementById('filterOrigem').addEventListener('change',renderData);
 document.getElementById('filterWA').addEventListener('change',renderData);
 document.getElementById('editStatus').addEventListener('change',function(){var v=this.value;document.getElementById('statusHelp').innerHTML=STATUS_FINAL[v]?'<strong>Contato marcado como '+v+'</strong> &mdash; o acompanhamento ser&aacute; encerrado.':'Alterar para <strong>Perdido</strong> ou <strong>Encerrado</strong> finaliza o acompanhamento.'});
-renderData();verificarServidor()})}
+  renderData();verificarServidor();setTimeout(function(){sincronizar()},1000)})}
 
 function verificarServidor(){
   fetch(SERVER_URL+'/api/health').then(function(r){if(r.ok)return r.json();throw Error()}).then(function(j){
