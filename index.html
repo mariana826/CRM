@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Move - CRM de Contatos M&eacute;dicos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--crimson:#6b0f14;--crimson-mid:#96141c;--crimson-light:#c0292f;--crimson-soft:#f9eaea;--gold:#c8922a;--gold-light:#f5dfa0;--white:#fff;--bg-page:#f7f5f2;--bg-card:#fff;--border:#e8e2da;--text-main:#1c1c1c;--text-muted:#6b6560;--sidebar-grad:linear-gradient(180deg,#b01020 0%,#7a0c18 30%,#3a0a0e 100%);--status-contato:#2563eb;--status-agendado:#ca8a04;--status-convertido:#16a34a;--status-perdido:#dc2626;--status-encerrado:#6b7280}
+*{box-sizing:border-box}
+body{margin:0;font-family:'DM Sans',system-ui,sans-serif;display:flex;flex-direction:row;height:100vh;overflow:hidden;background-color:#e5e0d8;color:var(--text-main)}
+.builder-sidebar{width:280px;background:var(--sidebar-grad);color:#fff;display:flex;flex-direction:column;box-shadow:2px 0 5px rgba(0,0,0,.2);z-index:10;flex-shrink:0}
+.logo-container{padding:25px 20px;background-color:#fff;text-align:center;border-bottom:3px solid var(--gold)}
+.logo-text{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--crimson);margin:0}
+.logo-subtext{font-size:11px;text-transform:uppercase;letter-spacing:.15em;color:var(--gold);margin:2px 0 0;font-weight:600}
+.menu-items{padding:20px;flex:1;overflow-y:auto}
+.menu-title{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:12px;margin-top:5px}
+.filter-group{margin-bottom:18px}
+.filter-group label{display:block;font-size:12px;font-weight:500;color:rgba(255,255,255,.85);margin-bottom:6px}
+.filter-input,.filter-select{width:100%;padding:10px 12px;background-color:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#fff;font-family:'DM Sans';font-size:13px;box-sizing:border-box}
+.filter-input:focus,.filter-select:focus{outline:none;border-color:var(--gold);background-color:rgba(0,0,0,.4)}
+.filter-select option{background-color:#500e14;color:#fff}
+.btn-clear{width:100%;background-color:var(--gold);color:#fff;border:none;padding:11px;border-radius:6px;font-weight:700;cursor:pointer;font-family:'DM Sans';transition:.2s;font-size:13px;margin-top:10px}
+.btn-clear:hover{background-color:#b38020}
+.sidebar-footer{padding:15px 20px;border-top:1px solid rgba(255,255,255,.1)}
+.btn-export{width:100%;background-color:#25D366;color:#fff;border:none;padding:11px;border-radius:6px;font-weight:700;cursor:pointer;font-family:'DM Sans';transition:.2s;font-size:13px}
+.btn-export:hover{background-color:#1da954}
+.main-workspace{flex:1;display:flex;flex-direction:column;overflow:hidden;background-color:var(--bg-page)}
+.canvas-area{flex:1;padding:30px;overflow-y:auto;display:flex;flex-direction:column;gap:24px}
+h1.el-titulo{font-family:'Playfair Display',Georgia,serif;font-size:2.2rem;font-weight:700;color:var(--crimson);margin:0;border-left:4px solid var(--gold);padding-left:18px;line-height:1.2}
+.cards-grid{display:flex;flex-wrap:wrap;gap:20px;width:100%}
+.card-container{flex:1;min-width:200px;display:flex}
+.el-quadro{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:15px;box-shadow:0 4px 12px rgba(0,0,0,.03);border-top:3px solid var(--crimson-mid);width:100%;display:flex;flex-direction:column;justify-content:center}
+.el-quadro-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:.4em}
+.el-quadro-value{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;margin:0;color:var(--crimson);line-height:1}
+.table-section{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,.03);overflow:hidden;display:flex;flex-direction:column}
+.table-wrapper{overflow-x:auto;max-height:600px}
+.el-tabela{width:100%;border-collapse:collapse;text-align:left}
+.el-tabela th{background-color:var(--crimson-soft);color:var(--crimson);font-weight:600;text-transform:uppercase;font-size:.75rem;letter-spacing:.05em;padding:14px 18px;border-bottom:2px solid var(--border);position:sticky;top:0;z-index:1}
+.el-tabela td{border-bottom:1px solid var(--border);padding:12px 18px;font-size:.88rem;color:var(--text-main)}
+.el-tabela tbody tr{cursor:pointer;transition:background .15s}
+.el-tabela tbody tr:hover{background-color:#fbfaf8}
+.el-tabela tbody tr.status-perdido,.el-tabela tbody tr.status-encerrado{opacity:.6}
+.el-tabela tbody tr.status-perdido:hover,.el-tabela tbody tr.status-encerrado:hover{opacity:1}
+.badge-espec{background-color:var(--crimson-soft);color:var(--crimson);padding:3px 8px;border-radius:4px;font-weight:700;font-size:11px;white-space:nowrap}
+.badge-wa{display:inline-block;background-color:#25D366;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.badge-status{display:inline-block;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-status.s-contato{background:#dbeafe;color:var(--status-contato)}
+.badge-status.s-agendado{background:#fef3c7;color:var(--status-agendado)}
+.badge-status.s-convertido{background:#dcfce7;color:var(--status-convertido)}
+.badge-status.s-perdido{background:#fee2e2;color:var(--status-perdido)}
+.badge-status.s-encerrado{background:#f3f4f6;color:var(--status-encerrado)}
+.whatsapp-link{color:#25D366;text-decoration:none;font-weight:600}
+.whatsapp-link:hover{text-decoration:underline}
+.btn-icon{background:none;border:1px solid var(--border);border-radius:4px;padding:4px 8px;cursor:pointer;font-size:13px;color:var(--text-muted);transition:.15s}
+.btn-icon:hover{background:var(--crimson-soft);color:var(--crimson);border-color:var(--crimson-light)}
+.btn-visit{background:var(--crimson-soft);color:var(--crimson);border:none;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:600;transition:.15s}
+.btn-visit:hover{background:var(--crimson-mid);color:#fff}
+.empty-state{padding:40px;text-align:center;color:var(--text-muted);font-style:italic}
+.mobile-cards-container{display:none;flex-direction:column;gap:16px}
+.mobile-contact-card{background:#fff;border-radius:8px;border:1px solid var(--border);border-top:3px solid var(--crimson-mid);padding:16px;box-shadow:0 3px 10px rgba(0,0,0,.04);cursor:pointer}
+.mobile-contact-card.status-perdido,.mobile-contact-card.status-encerrado{opacity:.65}
+.mobile-card-header{margin-bottom:12px}
+.mobile-doctor-name{font-size:1.1rem;font-weight:700;color:var(--crimson);margin:0 0 4px}
+.mobile-doctor-sub{font-size:.75rem;color:var(--text-muted);margin:0}
+.mobile-card-body p{margin:6px 0;font-size:.85rem}
+.mobile-card-actions{display:flex;gap:10px;margin-top:14px;border-top:1px solid #f0eae1;padding-top:12px}
+.btn-action{flex:1;text-align:center;padding:10px;border-radius:6px;font-size:.85rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;border:none;cursor:pointer;font-family:'DM Sans'}
+.btn-action.btn-call{background-color:#d4f5e0;color:#075e54}
+.btn-action.btn-email{background-color:#f0eae1;color:var(--text-main)}
+.btn-action.btn-edit-card{background-color:var(--crimson-soft);color:var(--crimson)}
+.alt-names{font-size:11px;color:var(--text-muted);margin-top:4px}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal-box{background:#fff;border-radius:12px;width:560px;max-width:94vw;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{margin:0;font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--crimson)}
+.modal-close{background:none;border:none;font-size:24px;color:var(--text-muted);cursor:pointer;padding:0 4px;line-height:1}
+.modal-close:hover{color:var(--crimson)}
+.modal-body{padding:24px;overflow-y:auto;flex:1}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:12px;justify-content:flex-end}
+.modal-footer .btn-primary{background:var(--crimson-mid);color:#fff;border:none;padding:10px 24px;border-radius:6px;font-weight:700;cursor:pointer;font-family:'DM Sans';font-size:14px}
+.modal-footer .btn-primary:hover{background:var(--crimson)}
+.modal-footer .btn-secondary{background:#f0eae1;color:var(--text-main);border:none;padding:10px 24px;border-radius:6px;font-weight:500;cursor:pointer;font-family:'DM Sans';font-size:14px}
+.modal-footer .btn-secondary:hover{background:#e0d8ce}
+.modal-footer .btn-danger{background:#fee2e2;color:var(--status-perdido);border:1px solid var(--status-perdido);padding:10px 24px;border-radius:6px;font-weight:700;cursor:pointer;font-family:'DM Sans';font-size:14px}
+.modal-footer .btn-danger:hover{background:var(--status-perdido);color:#fff}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:13px;font-weight:600;color:var(--text-main);margin-bottom:6px}
+.form-control{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:6px;font-family:'DM Sans';font-size:14px;color:var(--text-main);box-sizing:border-box}
+.form-control:focus{outline:none;border-color:var(--crimson-mid)}
+textarea.form-control{resize:vertical;min-height:80px}
+.visit-list{display:flex;flex-direction:column;gap:12px}
+.visit-item{border:1px solid var(--border);border-radius:8px;padding:14px 16px;border-left:3px solid var(--crimson-mid);background:#fcfcfc}
+.visit-item .visit-date{font-weight:700;color:var(--crimson);font-size:14px}
+.visit-item .visit-type{display:inline-block;background:var(--crimson-soft);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;color:var(--crimson);margin-left:8px}
+.visit-item .visit-notes{margin-top:8px;font-size:13px;color:var(--text-main);white-space:pre-wrap}
+.visit-item .visit-actions{margin-top:10px;display:flex;gap:8px}
+.visit-item .btn-del-visit{background:none;border:1px solid #e0d8ce;border-radius:4px;padding:3px 10px;font-size:11px;color:var(--text-muted);cursor:pointer}
+.visit-item .btn-del-visit:hover{background:#fee;color:#c00;border-color:#c00}
+.visit-item .perdido-notice{font-size:12px;color:var(--status-perdido);font-weight:600;margin-top:6px}
+.empty-visits{text-align:center;color:var(--text-muted);padding:30px 0;font-style:italic}
+.contact-info-bar{background:var(--crimson-soft);border-radius:8px;padding:14px 16px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.contact-info-bar .info-item{font-size:13px}
+.contact-info-bar .info-item strong{color:var(--crimson)}
+.btn-gear{background:none;border:1px solid rgba(255,255,255,.2);color:#fff;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:16px;width:100%;margin-top:8px;transition:.2s;font-family:'DM Sans'}
+.btn-gear:hover{background:rgba(255,255,255,.1);border-color:var(--gold)}
+.config-hint{font-size:11px;color:var(--text-muted);margin-top:4px}
+.config-status{font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:16px}
+.config-status.ok{background:#dcfce7;color:#16a34a}
+.config-status.warn{background:#fef3c7;color:#92400e}
+.config-status.err{background:#fee2e2;color:#dc2626}
+@media(max-width:768px){
+body{flex-direction:column;overflow-y:auto;height:auto}
+.builder-sidebar{width:100%;height:auto;box-shadow:0 2px 5px rgba(0,0,0,.1)}
+.logo-container{padding:15px}.menu-items{padding:15px}
+.main-workspace{overflow:visible;height:auto}
+.canvas-area{padding:15px;gap:16px}
+h1.el-titulo{font-size:1.6rem}
+.cards-grid{gap:10px}.card-container{min-width:45%}
+.el-quadro-value{font-size:1.5rem}
+.table-section{display:none}
+.mobile-cards-container{display:flex}
+.modal-box{width:100%;max-width:100vw;border-radius:0;max-height:100vh}
+}
+</style>
+</head>
+<body>
+<div class="builder-sidebar">
+<div class="logo-container">
+<div class="logo-text">
+<img src="https://movemedicalconsultancy.com/wp-content/uploads/2022/11/cropped-logo_move.png" alt="Move Medical" style="width:100%;height:auto;max-width:150px;display:block;margin:0 auto">
+</div>
+<div class="logo-subtext">CRM de Contatos M&eacute;dicos</div>
+</div>
+<div class="menu-items">
+<div class="menu-title">Filtros</div>
+<div class="filter-group">
+<label for="searchName">Nome do M&eacute;dico</label>
+<input type="text" id="searchName" class="filter-input" placeholder="Digite para buscar...">
+</div>
+<div class="filter-group">
+<label for="filterStatus">Status</label>
+<select id="filterStatus" class="filter-select">
+<option value="">Todos os Status</option>
+<option value="Em Contato">Em Contato</option>
+<option value="Agendado">Agendado</option>
+<option value="Convertido">Convertido</option>
+<option value="Perdido">Perdido</option>
+<option value="Encerrado">Encerrado</option>
+</select>
+</div>
+<div class="filter-group">
+<label for="filterEspec">Especialidade</label>
+<select id="filterEspec" class="filter-select"><option value="">Todas as Especialidades</option></select>
+</div>
+<div class="filter-group">
+<label for="filterOrigem">Arquivo de Origem</label>
+<select id="filterOrigem" class="filter-select"><option value="">Todos os Arquivos</option></select>
+</div>
+<div class="filter-group">
+<label for="filterWA">WhatsApp Business</label>
+<select id="filterWA" class="filter-select">
+<option value="">Todos</option>
+<option value="com">Com perfil Business</option>
+<option value="sem">Sem perfil Business</option>
+</select>
+</div>
+<button class="btn-clear" onclick="clearFilters()">Limpar Filtros</button>
+</div>
+<div class="sidebar-footer">
+<button class="btn-export" onclick="exportJSON()">&#11015; Exportar JSON</button>
+<button class="btn-export" onclick="document.getElementById('importFileInput').click()" style="margin-top:8px;background:#c8922a">&#128194; Importar JSON</button>
+<button class="btn-gear" onclick="abrirConfig()">&#9881; Configurar GitHub</button>
+</div>
+<input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importJSON(event)">
+</div>
+<div class="main-workspace">
+<div class="canvas-area">
+<div><h1 class="el-titulo">Carteira de Contatos M&eacute;dicos</h1></div>
+<div class="cards-grid">
+<div class="card-container"><div class="el-quadro"><div class="el-quadro-title">Total de Contatos</div><div class="el-quadro-value" id="kpiTotal">0</div></div></div>
+<div class="card-container"><div class="el-quadro"><div class="el-quadro-title">Em Contato</div><div class="el-quadro-value" id="kpiEmContato">0</div></div></div>
+<div class="card-container"><div class="el-quadro"><div class="el-quadro-title">Convertidos</div><div class="el-quadro-value" id="kpiConvertidos">0</div></div></div>
+<div class="card-container"><div class="el-quadro"><div class="el-quadro-title">Perdidos</div><div class="el-quadro-value" id="kpiPerdidos">0</div></div></div>
+</div>
+<div class="table-section">
+<div class="table-wrapper">
+<table class="el-tabela" id="contactsTable">
+<thead><tr>
+<th>Nome</th><th>Status</th><th>Especialidade</th><th>Telefone</th><th>Email</th><th>Visitas</th><th>A&ccedil;&otilde;es</th>
+</tr></thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+</div>
+<div class="mobile-cards-container" id="mobileCardsBody"></div>
+<div id="emptyMessage" class="empty-state" style="display:none">Nenhum contato encontrado com os filtros aplicados.</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="visitaModal">
+<div class="modal-box">
+<div class="modal-header">
+<h2 id="visitaModalTitle">Visitas</h2>
+<button class="modal-close" onclick="fecharModal('visitaModal')">&times;</button>
+</div>
+<div class="modal-body">
+<div class="contact-info-bar" id="visitaContactInfo"></div>
+<div id="visitaList"></div>
+<div id="novavisitaSection" style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px">
+<h3 style="font-size:1rem;color:var(--crimson);margin:0 0 16px">Nova Visita</h3>
+<div class="form-group"><label for="visitaData">Data</label><input type="date" id="visitaData" class="form-control"></div>
+<div class="form-group">
+<label for="visitaTipo">Tipo</label>
+<select id="visitaTipo" class="form-control">
+<option value="Presencial">Presencial</option>
+<option value="Telefone">Telefone</option>
+<option value="WhatsApp">WhatsApp</option>
+<option value="Email">E-mail</option>
+<option value="Videochamada">Videochamada</option>
+</select>
+</div>
+<div class="form-group"><label for="visitaObs">Observa&ccedil;&atilde;o</label><textarea id="visitaObs" class="form-control" placeholder="Detalhes da visita..."></textarea></div>
+<button onclick="salvarVisita()" style="background:var(--crimson-mid);color:#fff;border:none;padding:10px 24px;border-radius:6px;font-weight:700;cursor:pointer;font-family:'DM Sans';font-size:14px">Registrar Visita</button>
+</div>
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="editarModal">
+<div class="modal-box">
+<div class="modal-header">
+<h2>Editar Contato</h2>
+<button class="modal-close" onclick="fecharModal('editarModal')">&times;</button>
+</div>
+<div class="modal-body">
+<div class="form-group"><label for="editNome">Nome</label><input type="text" id="editNome" class="form-control"></div>
+<div class="form-group"><label for="editTelefone">Telefone</label><input type="text" id="editTelefone" class="form-control" placeholder="+55 71 99999-9999"></div>
+<div class="form-group"><label for="editEmail">E-mail</label><input type="email" id="editEmail" class="form-control" placeholder="email@exemplo.com"></div>
+<div class="form-group">
+<label for="editStatus">Status do Contato</label>
+<select id="editStatus" class="form-control">
+<option value="Em Contato">Em Contato</option>
+<option value="Agendado">Agendado</option>
+<option value="Convertido">Convertido</option>
+<option value="Perdido">Perdido</option>
+<option value="Encerrado">Encerrado</option>
+</select>
+<div style="font-size:12px;color:var(--text-muted);margin-top:6px">
+<span id="statusHelp">Alterar para <strong>Perdido</strong> ou <strong>Encerrado</strong> finaliza o acompanhamento deste contato.</span>
+</div>
+</div>
+</div>
+<div class="modal-footer">
+<button class="btn-secondary" onclick="fecharModal('editarModal')">Cancelar</button>
+<button class="btn-primary" onclick="salvarEdicao()">Salvar</button>
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="configModal">
+<div class="modal-box">
+<div class="modal-header">
+<h2>&#9881; Configura&ccedil;&atilde;o</h2>
+<button class="modal-close" onclick="fecharModal('configModal')">&times;</button>
+</div>
+<div class="modal-body">
+<div id="configStatus" class="config-status">Configure o GitHub para salvar automaticamente no reposit&oacute;rio.</div>
+<div class="form-group">
+<label for="cfgRepo">Reposit&oacute;rio (usu&aacute;rio/repo)</label>
+<input type="text" id="cfgRepo" class="form-control" placeholder="ex: joao/meu-crm">
+</div>
+<div class="form-group">
+<label for="cfgToken">GitHub Personal Access Token</label>
+<input type="password" id="cfgToken" class="form-control" placeholder="ghp_...">
+<div class="config-hint">Crie em: <strong>github.com &rarr; Settings &rarr; Developer settings &rarr; Personal access tokens</strong> (scope: repo)</div>
+</div>
+<div class="form-group">
+<label>
+<input type="checkbox" id="cfgAutoDownload"> Baixar JSON automaticamente ao salvar
+</label>
+<div class="config-hint">&Uacute;til se n&atilde;o usar GitHub API e quiser substituir o arquivo manualmente.</div>
+</div>
+</div>
+<div class="modal-footer">
+<button class="btn-secondary" onclick="testarConexaoGitHub()" id="btnTestarGit">Testar Conex&atilde;o</button>
+<button class="btn-primary" onclick="salvarConfig()">Salvar Configura&ccedil;&atilde;o</button>
+</div>
+</div>
+</div>
+
+<script>
+var DATA=null;
+var currentContactIndex=null;
+var SERVER_URL='http://localhost:3000';
+
+const ESPEC_MAP={DRM:'Dermatologia',ORT:'Ortopedia',CLG:'Cirurgia Geral',ANG:'Angiologia',GOB:'Ginecologia/Obstetr&iacute;cia',CRD:'Cardiologia',URO:'Urologia',NEU:'Neurologia',GAS:'Gastroenterologia',CIR:'Cirurgia',OTO:'Otorrinolaringologia',ONC:'Oncologia',HRS:'Cirurgia',IDAB:'Dermatologia'};
+
+const STATUS_LIST=['Em Contato','Agendado','Convertido','Perdido','Encerrado'];
+const STATUS_CLASS={'Em Contato':'s-contato','Agendado':'s-agendado','Convertido':'s-convertido','Perdido':'s-perdido','Encerrado':'s-encerrado'};
+const STATUS_FINAL={'Perdido':1,'Encerrado':1};
+
+function extractEspecialidade(n){var m=n.toUpperCase().match(/\((\w+)\)|\b(DRM|ORT|CLG|ANG|GOB|CRD|URO|NEU|GAS|CIR|OTO|ONC|HRS|IDAB)\b/);if(!m)return'';var s=m[1]||m[2];return ESPEC_MAP[s]||s}
+
+function normalizePhone(t){if(!t)return'-';var d=t.replace(/\D/g,'');if(d.startsWith('55')&&d.length>10)d=d.substring(2);if(d.startsWith('0')&&d.length>10)d=d.substring(1);if(d.length===11)return'('+d.substring(0,2)+') '+d.substring(2,7)+'-'+d.substring(7);if(d.length===10)return'('+d.substring(0,2)+') '+d.substring(2,6)+'-'+d.substring(6);return t.trim()}
+
+function getOriginShort(f){return f.replace(/\.vcf$/i,'').replace(/^Dr_/,'').replace(/_/g,' ')}
+
+function getDDD(t){if(!t)return'';var m=t.match(/\((\d{2})\)/);return m?m[1]:''}
+
+function statusBadge(s){var c=STATUS_CLASS[s]||'s-contato';return'<span class="badge-status '+c+'">'+s+'</span>'}
+
+var GH_TOKEN='',GH_REPO='',GH_PATH='contatos_consolidado.json',CFG={token:'',repo:'',autoDownload:false};
+try{CFG=Object.assign(CFG,JSON.parse(localStorage.getItem('move_crm_cfg')||'{}'));GH_TOKEN=CFG.token;GH_REPO=CFG.repo}catch(e){}
+
+function carregarDados(cb){
+  fetch('contatos_consolidado.json').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(d){
+    DATA=d;normalizarDados();salvarStorage();if(cb)cb();
+  }).catch(function(){
+    fetch('http://localhost:3000/api/data').then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(d){
+      DATA=d;normalizarDados();salvarStorage();if(cb)cb();
+    }).catch(function(){
+      if(GH_TOKEN&&GH_REPO){fetch('https://api.github.com/repos/'+GH_REPO+'/contents/'+GH_PATH,{headers:{Authorization:'token '+GH_TOKEN,'Accept':'application/vnd.github.v3+json'}}).then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(j){var c=j.content.replace(/\n/g,'');while(c.length%4!==0)c+='=';DATA=JSON.parse(atob(c));normalizarDados();salvarStorage();if(cb)cb()}).catch(function(){fallbackData(cb)})}else{fallbackData(cb)}
+    })
+  })
+}
+
+function fallbackData(cb){var st=localStorage.getItem('move_crm_data');if(st){try{DATA=JSON.parse(st);if(!DATA||!DATA.length)throw'bad'}catch(e){localStorage.removeItem('move_crm_data');DATA=_BASE_DATA_}}else{DATA=_BASE_DATA_};normalizarDados();salvarStorage();if(cb)cb()}
+
+function normalizarDados(){DATA.forEach(function(c){if(!c.email)c.email='';if(!c.visitas)c.visitas=[];if(!c.status)c.status='Em Contato'})}
+
+function salvarStorage(){localStorage.setItem('move_crm_data',JSON.stringify(DATA))}
+
+function salvarEExportar(){
+  salvarStorage();
+  fetch('http://localhost:3000/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(DATA)}).catch(function(){});
+  if(GH_TOKEN&&GH_REPO){enviarGitHub()}
+  if(CFG.autoDownload){downloadAuto()}
+}
+
+function downloadAuto(){var jsonStr=JSON.stringify(DATA,null,2);var blob=new Blob([jsonStr],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='contatos_consolidado.json';a.click();URL.revokeObjectURL(url)}
+
+function enviarGitHub(){var sha=null,c=btoa(unescape(encodeURIComponent(JSON.stringify(DATA,null,2))));fetch('https://api.github.com/repos/'+GH_REPO+'/contents/'+GH_PATH,{headers:{Authorization:'token '+GH_TOKEN,'Accept':'application/vnd.github.v3+json'}}).then(function(r){return r.json()}).then(function(j){sha=j.sha}).catch(function(){}).then(function(){return fetch('https://api.github.com/repos/'+GH_REPO+'/contents/'+GH_PATH,{method:'PUT',headers:{Authorization:'token '+GH_TOKEN,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({message:'Atualiza CRM',content:c,sha:sha})})}).then(function(r){if(r.ok)mostrarToast('Salvo no GitHub!');else mostrarToast('Erro ao salvar no GitHub','#92400e')}).catch(function(){})}
+
+function downloadJSON(){var jsonStr=JSON.stringify(DATA,null,2);var blob=new Blob([jsonStr],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='contatos_consolidado.json';a.click();URL.revokeObjectURL(url);mostrarToast('JSON exportado!')}
+
+function exportJSON(){downloadJSON()}
+
+var _BASE_DATA_ = [{"nome":"Cl Tatiana Matos DRM","whatsapp_business_descricao":"Olá somos uma clínica especializada em tratamento","telefone":"+55 71 3901-0960","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557139010960","visitas":[],"email":"","whatsapp_business_nome":"Dr Bruno Falcão"},{"nome":"Dr Adriano Fonseca ( ORT)","telefone":"+55 71 9195-7685","whatsapp_business_nome":"Dr Adriano Fonseca ( ORT)","status":"Em Contato","arquivos_origem":["Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"],"whatsapp_id":"557191957685","visitas":[],"email":""},{"nome":"Dr Adriano Melo","telefone":"+55 71 8108-8788","status":"Em Contato","arquivos_origem":["Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"],"whatsapp_id":"557181088788","visitas":[],"email":""},{"nome":"Dr Alcides (ORT)","telefone":"+55 71 8828-1268","status":"Em Contato","arquivos_origem":["Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"],"whatsapp_id":"557188281268","visitas":[],"email":""},{"nome":"Dr Alexandre","telefone":"+55 71 9966-5225","status":"Em Contato","arquivos_origem":["Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"],"whatsapp_id":"557199665225","visitas":[],"email":""},{"nome":"Dr Alfredo Neto (ORT)","telefone":"+55 71 8609-4102","status":"Em Contato","arquivos_origem":["Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"],"whatsapp_id":"557186094102","visitas":[],"email":""},{"nome":"Dr Ana Carolina Mota DRM","telefone":"+55 71 99222-0452","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557192220452","visitas":[],"email":""},{"nome":"Dr anderson Dentista","telefone":"+55 71 9146-9045","whatsapp_business_nome":"Dr anderson Dentista","status":"Em Contato","arquivos_origem":["Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"],"whatsapp_id":"557191469045","visitas":[],"email":""},{"nome":"Dr André Pinheiro","telefone":"+55 71 8873-8585","status":"Em Contato","arquivos_origem":["Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"],"whatsapp_id":"557188738585","visitas":[],"email":""},{"nome":"Dr Anselmo Lopes","telefone":"+55 77 9206-4484","status":"Em Contato","arquivos_origem":["Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"],"whatsapp_id":"557792064484","visitas":[],"email":""},{"nome":"Dr Antonio Brito Ortopedista","telefone":"+55 71 9982-7363","status":"Em Contato","arquivos_origem":["Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"],"whatsapp_id":"557199827363","visitas":[],"email":""},{"nome":"Dr Antonio Carlos Martins ( CLG)","telefone":"+55 71 8603-1915","status":"Em Contato","arquivos_origem":["Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"],"whatsapp_id":"557186031915","visitas":[],"email":""},{"nome":"Dr Antonio Torres DRM","telefone":"+55 21 97277-3927","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"5521972773927","visitas":[],"email":""},{"nome":"Dr Aristides Martins (DRM)","telefone":"+55 75 9990-0908","status":"Em Contato","arquivos_origem":["Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"],"whatsapp_id":"557599900908","visitas":[],"email":""},{"nome":"Dr Arthur Incar CRD","telefone":"+55 75 8825-5729","status":"Em Contato","arquivos_origem":["Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"],"whatsapp_id":"557588255729","visitas":[],"email":""},{"nome":"Dr Avai Ortopedista​","telefone":"+55 71 8604-7110","status":"Em Contato","arquivos_origem":["Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"],"whatsapp_id":"557186047110","visitas":[],"email":""},{"nome":"Dr Bruno Duque","telefone":"+55 71 8131-3080","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_12_contatos.vcf"],"whatsapp_id":"557181313080","visitas":[],"email":""},{"nome":"Dr Carla Rocha ( ORT)","telefone":"+55 21 99378-0090","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_12_contatos.vcf"],"whatsapp_id":"5521993780090","visitas":[],"email":""},{"nome":"Dr Carlos Amorim","telefone":"+55 71 9178-4038","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_12_contatos.vcf"],"whatsapp_id":"557191784038","visitas":[],"email":""},{"nome":"Dr Carlos Hora ( GOB )","telefone":"+55 75 8103-9889","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_12_contatos.vcf"],"whatsapp_id":"557581039889","visitas":[],"email":""},{"nome":"Dr Carlos Liborio DRM","telefone":"+55 71 98890-0086","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557188900086","visitas":[],"email":""},{"nome":"Dr Carlos Porto","telefone":"+55 71 9202-0865","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_12_contatos.vcf"],"whatsapp_id":"557192020865","visitas":[],"email":""},{"nome":"Dr Cesar Avila (NEU)","telefone":"+55 71 9285-0009","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_12_contatos.vcf"],"whatsapp_id":"557192850009","visitas":[],"email":""},{"nome":"DR CLEITON GRABNER (ORT)","telefone":"+55 71 8122-3868","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_12_contatos.vcf"],"whatsapp_id":"557181223868","visitas":[],"email":""},{"nome":"Dr Clemilson upa","telefone":"+55 71 8841-3760","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_12_contatos.vcf"],"whatsapp_id":"557188413760","visitas":[],"email":""},{"nome":"Dr Daniel Rios Vereador","telefone":"+55 64 9935-0150","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_12_contatos.vcf"],"whatsapp_id":"556499350150","visitas":[],"email":""},{"nome":"Dr David Dominguez Ort","telefone":"+55 71 9956-0303","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_12_contatos.vcf","Dr_Dermeval___ANG__e_outros_6_contatos.vcf"],"whatsapp_id":"557199560303","visitas":[],"email":""},{"nome":"Dr David Rios Deputado","telefone":"+55 71 9985-1277","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_12_contatos.vcf","Dr_Dermeval___ANG__e_outros_6_contatos.vcf"],"whatsapp_id":"557199851277","visitas":[],"email":""},{"nome":"Dr Delmo DRM AJU","telefone":"+55 79 99978-7991","whatsapp_business_nome":"Delmo","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557999787991","visitas":[],"email":""},{"nome":"Dr Dermeval ( ANG)","telefone":"+55 71 9126-6510","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_12_contatos.vcf","Dr_Dermeval___ANG__e_outros_6_contatos.vcf"],"whatsapp_id":"557191266510","visitas":[],"email":""},{"nome":"Dr Diego Fabricio Drm HC","telefone":"+55 79 99993-9903","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557999939903","visitas":[],"email":""},{"nome":"Dr Dilton ( ORT )","telefone":"+55 71 9936-2070","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_12_contatos.vcf","Dr_Dermeval___ANG__e_outros_6_contatos.vcf"],"whatsapp_id":"557199362070","visitas":[],"email":""},{"nome":"Dr DRM","telefone":"+55 71 98868-3282","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557188683282","visitas":[],"email":""},{"nome":"Dr Duarte DRM","telefone":"+55 71 99628-2914","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557196282914","visitas":[],"email":""},{"nome":"Dr Durval Rosa HRS","telefone":"+55 71 8138-2363","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_6_contatos.vcf"],"whatsapp_id":"557181382363","visitas":[],"email":""},{"nome":"Dr Eberth Maida","telefone":"+55 71 8896-8009","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_6_contatos.vcf"],"whatsapp_id":"557188968009","visitas":[],"email":""},{"nome":"Dr Eduardo Castello Branco (ORT)","telefone":"+55 71 9956-0730","status":"Em Contato","arquivos_origem":["Dr_Dermeval___ANG__e_outros_6_contatos.vcf"],"whatsapp_id":"557199560730","visitas":[],"email":""},{"nome":"Dr Eduardo Cerqueira Uro","telefone":"+55 75 8890-3112","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557588903112","visitas":[],"email":""},{"nome":"Dr Eneas (ORT)","telefone":"+55 75 9971-2224","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557599712224","visitas":[],"email":""},{"nome":"Dr Fabio Quintero (CRD)","telefone":"+55 71 9984-1554","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557199841554","visitas":[],"email":""},{"nome":"Dr Felipe UPA Brotas","telefone":"+55 71 9643-1363","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557196431363","visitas":[],"email":""},{"nome":"Dr Fernando Antônio (CLG)","telefone":"+55 75 8834-1444","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557588341444","visitas":[],"email":""},{"nome":"Dr Francisco Bragança (ORT)","telefone":"+55 71 8824-8151","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557188248151","visitas":[],"email":""},{"nome":"Dr Gilmar Ribeiro CRD","telefone":"+55 75 8802-9776","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557588029776","visitas":[],"email":""},{"nome":"Dr Gilmar Vascular","telefone":"+55 71 9974-9721","whatsapp_business_nome":"Dr Gilmar Vascular","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557199749721","visitas":[],"email":""},{"nome":"Dr Gueri Dourado (NEU)","telefone":"+55 75 9982-1376","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557599821376","visitas":[],"email":""},{"nome":"Dr Gustavo Machado ( DRM )","telefone":"+55 71 9199-3749","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557191993749","visitas":[],"email":""},{"nome":"Dr Herodilio Basilio (GAS)","telefone":"+55 71 9154-0029","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557191540029","visitas":[],"email":""},{"nome":"Dr Irlan Fahel ( ORT)","telefone":"+55 71 9955-9914","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557199559914","visitas":[],"email":""},{"nome":"Dr Ivan Barreto (GOB)","telefone":"+55 75 9143-9481","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557591439481","visitas":[],"email":""},{"nome":"Dr Ivan Silveira Ortopedista","telefone":"+55 64 9615-0060","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"556496150060","visitas":[],"email":""},{"nome":"Dr Ivana Gomes Drm","telefone":"+55 71 99981-2299","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199812299","visitas":[],"email":""},{"nome":"Dr Jackson (GAS)","telefone":"+55 71 8710-8494","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557187108494","visitas":[],"email":""},{"nome":"Dr Jacson (URO)","telefone":"+55 75 8829-3862","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557588293862","visitas":[],"email":""},{"nome":"Dr Joao Cunha","telefone":"+55 71 9964-8324","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557199648324","visitas":[],"email":""},{"nome":"Dr Jorge Brasil Smith (ORT)","telefone":"+55 71 8170-5719","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557181705719","visitas":[],"email":""},{"nome":"Dr Joscelin (ORT)","telefone":"+55 71 9214-4584","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557192144584","visitas":[],"email":""},{"nome":"Dr Jose Ricardo ORT","telefone":"+55 71 9982-8429","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557199828429","visitas":[],"email":""},{"nome":"Dr José Carlos Loiola (CRD)","telefone":"+55 71 9961-2036","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557199612036","visitas":[],"email":""},{"nome":"Dr José Maria Angiologia","telefone":"+55 77 9115-7563","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557791157563","visitas":[],"email":""},{"nome":"Dr João Paulo Feira","telefone":"+55 71 9662-5311","status":"Em Contato","arquivos_origem":["Dr_Irlan_Fahel___ORT__e_outros_17_contatos.vcf"],"whatsapp_id":"557196625311","visitas":[],"email":""},{"nome":"Dr Laurentino Trigo (GOB)","telefone":"+55 75 8138-7550","whatsapp_business_nome":"Dr Laurentino Trigo (GOB)","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557581387550","visitas":[],"email":""},{"nome":"Dr Leonardo Rolla OTO","telefone":"+55 71 9198-1075","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557191981075","visitas":[],"email":""},{"nome":"Dr Luciano Peixoto (URO)","telefone":"+55 75 9972-4674","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557599724674","visitas":[],"email":""},{"nome":"Dr Lucio Carneiro (URO)","telefone":"+55 71 8870-1265","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557188701265","visitas":[],"email":""},{"nome":"Dr Lucio Rodrigues (CRD)","telefone":"+55 71 9982-9014","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557199829014","visitas":[],"email":""},{"nome":"Dr Luis Carlos Furini","telefone":"+55 71 9206-7183","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557192067183","visitas":[],"email":""},{"nome":"Dr Luis Carlos Furini","telefone":"+55 75 9876-7183","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557598767183","visitas":[],"email":""},{"nome":"Dr Marcelo Borges Valença","telefone":"+55 62 8219-7077","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"556282197077","visitas":[],"email":""},{"nome":"Dr Marcelo Brito Dentista","telefone":"+55 31 7529-7003","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"553175297003","visitas":[],"email":""},{"nome":"Dr Marcelo Dentista Rv","telefone":"+55 64 9642-4197","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"556496424197","visitas":[],"email":""},{"nome":"Dr Marcio Santana","telefone":"+55 71 9981-0170","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557199810170","visitas":[],"email":""},{"nome":"Dr Marcos Alex (URO)","telefone":"+55 71 9122-0885","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557191220885","visitas":[],"email":""},{"nome":"Dr Marcos Couto (ORT)","telefone":"+55 71 9605-6789","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557196056789","visitas":[],"email":""},{"nome":"Dr Matheus Dentista","telefone":"+55 71 9957-7075","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557199577075","visitas":[],"email":""},{"nome":"Dr Matheus Upa","telefone":"+55 71 9194-2876","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557191942876","visitas":[],"email":""},{"nome":"Dr Mauro (ORT)","telefone":"+55 75 8355-8686","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557583558686","visitas":[],"email":""},{"nome":"Dr Maurício","telefone":"+55 64 9963-9194","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"556499639194","visitas":[],"email":""},{"nome":"Dr Murilo UPA Brotas","telefone":"+55 71 9972-4951","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557199724951","visitas":[],"email":""},{"nome":"Dr Noel (ANG)","telefone":"+55 71 9110-1180","whatsapp_business_nome":"Dr Noel (ANG)","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557191101180","visitas":[],"email":""},{"nome":"Dr Orlando Oliveira DRM","telefone":"+55 77 98814-4848","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557788144848","visitas":[],"email":""},{"nome":"Dr Paulo De Tarso (ORT)","telefone":"+55 71 9376-1145","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557193761145","visitas":[],"email":""},{"nome":"Dr Paulo Gomez (ORT)","telefone":"+55 71 8615-7055","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557186157055","visitas":[],"email":""},{"nome":"Dr Paulo Ivo Dent","telefone":"+55 75 9137-9079","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557591379079","visitas":[],"email":""},{"nome":"Dr Paulo Pereira ONC Rv","telefone":"+55 64 9246-0305","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"556492460305","visitas":[],"email":""},{"nome":"Dr Paulo Ricardo Ortop","telefone":"+55 71 9603-9472","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557196039472","visitas":[],"email":""},{"nome":"Dr Paulo Roriz","telefone":"+55 71 9132-6460","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557191326460","visitas":[],"email":""},{"nome":"Dr Pedro Brandão ( ORT)","telefone":"+55 71 9211-1076","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557192111076","visitas":[],"email":""},{"nome":"Dr Regis (URO)","telefone":"+55 75 9124-5503","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557591245503","visitas":[],"email":""},{"nome":"Dr Ricardo Falcão (ORT)","telefone":"+55 75 8105-3902","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557581053902","visitas":[],"email":""},{"nome":"Dr Ricardo Liborio DRM","telefone":"+55 71 98890-0091","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557188900091","visitas":[],"email":""},{"nome":"Dr Ricardo Pereira ( CLG )","telefone":"+55 75 9982-1212","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557599821212","visitas":[],"email":""},{"nome":"Dr Roberto DRM AJU","telefone":"+55 79 99970-7888","whatsapp_business_nome":"Roberto Fernandes","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557999707888","visitas":[],"email":""},{"nome":"Dr Robson Cera DRM","telefone":"+55 71 98181-3492","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557181813492","visitas":[],"email":""},{"nome":"Dr Ronald Edington (CIR)","telefone":"+55 75 9139-5335","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557591395335","visitas":[],"email":""},{"nome":"Dr Rui Comede","telefone":"+55 71 8231-3778","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557182313778","visitas":[],"email":""},{"nome":"Dr Thiago Marques DRM","telefone":"+55 71 99265-0100","whatsapp_business_nome":"Clinica Dr. Thiago Derma","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557192650100","visitas":[],"email":""},{"nome":"Dr Trajano Vasc","telefone":"+55 71 9934-3575","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557199343575","visitas":[],"email":""},{"nome":"Dr Valonie (ORT)","telefone":"+55 71 9129-4553","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557191294553","visitas":[],"email":""},{"nome":"Dr Valter Neto","telefone":"+55 71 9958-6555","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557199586555","visitas":[],"email":""},{"nome":"Dr Vitor Jalil (ORT)","telefone":"+55 71 9967-9392","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557199679392","visitas":[],"email":""},{"nome":"Dr Wagner Fofagnoli","telefone":"+55 75 8807-0707","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557588070707","visitas":[],"email":""},{"nome":"Dr Wagner Ramos","telefone":"+55 71 9206-8592","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557192068592","visitas":[],"email":""},{"nome":"Dr Walter Maciel Vasc","telefone":"+55 71 9707-8433","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557197078433","visitas":[],"email":""},{"nome":"Dr Walter Rodrigues ( GOB)","telefone":"+55 71 9988-8111","status":"Em Contato","arquivos_origem":["Dr_Walter_Rodrigues___GOB__e_outros_43_contatos.vcf"],"whatsapp_id":"557199888111","visitas":[],"email":""},{"nome":"Dra Adriana Marambaia DRM","telefone":"+55 71 99161-0292","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191610292","visitas":[],"email":""},{"nome":"Dra Adriana Ribeiro DRM","telefone":"+55 71 99716-0555","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557197160555","visitas":[],"email":""},{"nome":"Dra Agata Brandao DRM","telefone":"+55 71 99616-4243","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557196164243","visitas":[],"email":""},{"nome":"Dra Alana Azevedo DRM AJU","telefone":"+55 79 99889-9988","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557998899988","visitas":[],"email":""},{"nome":"Dra Aline Garcez DRM","telefone":"+55 79 99995-3427","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557999953427","visitas":[],"email":""},{"nome":"Dra Ana Helena Liborio Drm CMV","telefone":"+55 71 99626-1931","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557196261931","visitas":[],"email":""},{"nome":"Dra Ana Lisia DRM","telefone":"+55 71 99968-3515","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199683515","visitas":[],"email":""},{"nome":"Dra Andrea Mendes DRM","telefone":"+55 71 99969-1194","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199691194","visitas":[],"email":""},{"nome":"Dra Andreia Nogueira Ramos DRM","telefone":"+55 71 99991-3960","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199913960","visitas":[],"email":""},{"nome":"Dra Angelica Pessanha DRM","telefone":"+55 71 99968-3965","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199683965","visitas":[],"email":""},{"nome":"Dra Barbara Fernandes DRM","telefone":"+55 71 99376-0555","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557193760555","visitas":[],"email":""},{"nome":"Dra Bethania DRM AJU","telefone":"+55 79 98854-5678","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557988545678","visitas":[],"email":""},{"nome":"Dra Bianca Lorena DRM","telefone":"+55 71 99184-1401","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191841401","visitas":[],"email":""},{"nome":"Dra Botto DRM","telefone":"+55 71 99139-6473","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191396473","visitas":[],"email":""},{"nome":"Dra Camila Neiva Drm HC","telefone":"+55 71 99146-0181","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191460181","visitas":[],"email":""},{"nome":"Dra Camila Sampaio DRM","telefone":"+55 71 99988-8989","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199888989","visitas":[],"email":""},{"nome":"Dra Camile Bittencourt DRM AJU","telefone":"+55 79 99927-0827","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557999270827","visitas":[],"email":""},{"nome":"Dra Carine Veloso DRM","telefone":"+55 71 99131-5094","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191315094","nomes_alternativos":["Dra Veloso"],"visitas":[],"email":""},{"nome":"Dra Carol Lira DRM","telefone":"+55 73 98885-6700","whatsapp_business_nome":"Carol Lira","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557388856700","visitas":[],"email":""},{"nome":"Dra Carolina Oliveira DRM","telefone":"+55 71 98796-1234","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557187961234","visitas":[],"email":""},{"nome":"Dra Catheryne Ramos DRM","telefone":"+55 71 99733-1011","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557197331011","visitas":[],"email":""},{"nome":"Dra Cibele Apostolos DRM","telefone":"+55 71 99997-5470","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199975470","visitas":[],"email":""},{"nome":"Dra Cibele Araujo DRM","telefone":"+55 71 98666-1362","whatsapp_business_nome":"Pele Clinica Dermatológica","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557186661362","visitas":[],"email":""},{"nome":"Dra Clarissa Iole DRM","telefone":"+55 71 99148-9785","whatsapp_business_nome":"Clarissa Britto","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191489785","visitas":[],"email":""},{"nome":"Dra Clarissa Martinelli DRM","org":"Dra Clarissa Martinelli","telefone":"+55 71 99290-4379","whatsapp_business_nome":"Dra Clarissa Martinelli","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557192904379","visitas":[],"email":""},{"nome":"Dra Cris Mendonça DRM","telefone":"+55 71 98704-4944","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557187044944","visitas":[],"email":""},{"nome":"Dra Cristiana Silveira","telefone":"+55 71 98864-7377","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557188647377","nomes_alternativos":["Dra Cristiana Silveira DRM"],"visitas":[],"email":""},{"nome":"Dra Cristiane Pinto DRM","telefone":"+55 71 99974-1919","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199741919","visitas":[],"email":""},{"nome":"Dra Dalana Keise DRM","telefone":"+55 71 99990-8451","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199908451","visitas":[],"email":""},{"nome":"Dra Dani Falcão Novo","whatsapp_business_descricao":"Médica","telefone":"+55 71 98360-2795","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557183602795","nomes_alternativos":["Dani Falcao DRM"],"visitas":[],"email":"","whatsapp_business_nome":"‎Daniela Ramos"},{"nome":"Dra Dani Pinto DRM","telefone":"+55 71 99964-6452","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199646452","visitas":[],"email":""},{"nome":"Dra Daniela Andrade DRM Dermato+","telefone":"+55 71 99253-5266","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557192535266","visitas":[],"email":""},{"nome":"Dra Daniela Meneses Drm Cajazeiras","telefone":"+55 71 98106-7716","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557181067716","visitas":[],"email":""},{"nome":"Dra Daniela Menezes DRM","whatsapp_business_descricao":"Áurea Dermatologia Integrada","telefone":"+55 71 99727-3554","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557197273554","visitas":[],"email":"","whatsapp_business_nome":"Daniela Menezes"},{"nome":"Dra Daniele Leite DRM","whatsapp_business_descricao":"Medicina Estética/ Dermatologia","telefone":"+55 71 99741-2188","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557197412188","visitas":[],"email":"","whatsapp_business_nome":"Dra Daniele Alencar"},{"nome":"Dra Daniele Pereira DRM","telefone":"+55 71 99276-3232","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557192763232","nomes_alternativos":["Dra Dani Pereira DRM"],"visitas":[],"email":""},{"nome":"Dra Daniella Martinelli DRM","telefone":"+55 71 99211-5227","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557192115227","visitas":[],"email":""},{"nome":"Dra Duanne DRM","telefone":"+55 71 99694-8322","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557196948322","visitas":[],"email":""},{"nome":"Dra Eliene Portugal Drm CMV","telefone":"+55 71 99918-5500","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199185500","visitas":[],"email":""},{"nome":"Dra Erica Sales DRM","whatsapp_business_descricao":"Autoestima através de uma pele saudável!","telefone":"+55 71 99967-5113","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199675113","visitas":[],"email":"","whatsapp_business_nome":"Erica Sales  - Dermatologia \u0026 Saúde Integrada"},{"nome":"Dra Fabiola Calvi DRM AJU","telefone":"+55 79 99179-0004","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557991790004","visitas":[],"email":""},{"nome":"Dra Felix DRM","telefone":"+55 71 99974-8963","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199748963","visitas":[],"email":""},{"nome":"Dra Fernanda DRM","telefone":"+55 71 99710-0512","whatsapp_business_nome":"Dra Fernanda Soares","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557197100512","visitas":[],"email":""},{"nome":"Dra Fernanda Ventin DRM","telefone":"+55 71 98802-5316","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557188025316","visitas":[],"email":""},{"nome":"Dra Fernanda Viana DRM","telefone":"+55 71 99116-6550","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191166550","visitas":[],"email":""},{"nome":"Dra Flavia Bastos DRM","telefone":"+55 71 99194-8410","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191948410","visitas":[],"email":""},{"nome":"Dra Gleide Gatto DRM AJU","telefone":"+55 79 99998-6398","whatsapp_business_nome":"Gleide Gatto","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557999986398","visitas":[],"email":""},{"nome":"Dra Hadassa Priscila Drm","telefone":"+55 71 98103-6332","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":null,"visitas":[],"email":""},{"nome":"Dra Helâine Batista DRM AJU","telefone":"+55 79 99909-1909","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557999091909","visitas":[],"email":""},{"nome":"Dra Hillane Rodrigues DRM","telefone":"+55 71 98813-5553","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":null,"visitas":[],"email":""},{"nome":"Dra Ingrid Cairo DRM","telefone":"+55 71 99612-0291","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557196120291","visitas":[],"email":""},{"nome":"Dra Irene Spinola DRM","telefone":"+55 71 99988-3042","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199883042","visitas":[],"email":""},{"nome":"Dra Ivonise Follador Drm","telefone":"+55 71 98848-8487","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557188488487","visitas":[],"email":""},{"nome":"Dra Jamima Queiroz DRM IRECE","telefone":"+55 71 99699-2092","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557196992092","visitas":[],"email":""},{"nome":"Dra Juliana Gomes DRM AJU","telefone":"+55 79 99905-1207","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557999051207","visitas":[],"email":""},{"nome":"Dra Karina Frias DRM","telefone":"+55 71 99962-1552","whatsapp_business_nome":"Dra Karina Frias","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199621552","visitas":[],"email":""},{"nome":"Dra Lais Filadefo DRM","telefone":"+55 71 99185-4452","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191854452","visitas":[],"email":""},{"nome":"Dra Larissa Caminha DRM","telefone":"+55 71 99212-2201","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557192122201","visitas":[],"email":""},{"nome":"Dra Larissa França DRM","telefone":"+55 71 99677-1277","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557196771277","visitas":[],"email":""},{"nome":"Dra Laryssa Faiçal Drm","telefone":"+55 71 99272-4004","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557192724004","visitas":[],"email":""},{"nome":"Dra Laura Cruz DRM AJU","telefone":"+55 79 99103-8000","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557991038000","visitas":[],"email":""},{"nome":"Dra Lenise Albuquerque DRM AJU","telefone":"+55 79 99905-4403","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557999054403","visitas":[],"email":""},{"nome":"Dra Livia Santino DRM","telefone":"+55 71 98100-6780","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557181006780","visitas":[],"email":""},{"nome":"Dra Lorena Fontoura DRM","telefone":"+55 71 99956-0145","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199560145","visitas":[],"email":""},{"nome":"Dra Lorena Marçal Drm PROMÉDICA","telefone":"+55 71 99977-4017","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199774017","visitas":[],"email":""},{"nome":"Dra Luciana Franca Pessoal DRM AJU","telefone":"+55 79 99904-3258","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557999043258","visitas":[],"email":""},{"nome":"Dra Luciana Rebouças DRM","whatsapp_business_descricao":"Médica Dermatologista","telefone":"+55 71 98217-5757","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557182175757","visitas":[],"email":"","whatsapp_business_nome":"Dra Luciana Rebouças"},{"nome":"Dra Luise Fonseca DRM","telefone":"+55 71 99376-4421","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557193764421","visitas":[],"email":""},{"nome":"Dra Luiza Negreiros DRM AJU","telefone":"+55 79 99659-4444","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557996594444","visitas":[],"email":""},{"nome":"Dra Magna DRM AJU","telefone":"+55 79 99199-7099","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557991997099","visitas":[],"email":""},{"nome":"Dra Maiana Carneiro DRM","telefone":"+55 75 99825-6533","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557598256533","visitas":[],"email":""},{"nome":"Dra Manuela Serapiao DRM","telefone":"+55 71 99122-3194","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191223194","visitas":[],"email":""},{"nome":"Dra Maria Clara DRM","telefone":"+55 71 99157-8131","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191578131","visitas":[],"email":""},{"nome":"Dra Maria Elisa DRM","telefone":"+55 71 98755-6864","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557187556864","visitas":[],"email":""},{"nome":"Dra Maria Eugenia DRM","telefone":"+55 71 99650-5646","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557196505646","visitas":[],"email":""},{"nome":"Dra Mariana De Castro DRM","telefone":"+55 71 99962-5739","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199625739","visitas":[],"email":""},{"nome":"Dra Mariana Sales DRM","telefone":"+55 71 99647-6868","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557196476868","visitas":[],"email":""},{"nome":"Dra Mariana Siebel DRM","telefone":"+55 79 99112-5620","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557991125620","visitas":[],"email":""},{"nome":"Dra Marilia Acioli DRM","telefone":"+55 71 99974-4900","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199744900","visitas":[],"email":""},{"nome":"Dra Marluce Lopes DRM","telefone":"+55 71 99165-0001","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191650001","visitas":[],"email":""},{"nome":"Dra Marta Machado DRM","telefone":"+55 71 99994-0703","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199940703","visitas":[],"email":""},{"nome":"Dra Martha Debora DRM AJU","telefone":"+55 79 98828-2929","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557988282929","visitas":[],"email":""},{"nome":"Dra Michele Pontes DRM AJU","telefone":"+55 79 99872-0123","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557998720123","visitas":[],"email":""},{"nome":"Dra Moema Barral Guanambi DRM","telefone":"+55 77 99812-5794","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557798125794","visitas":[],"email":""},{"nome":"Dra Moema Mignnac DRM","telefone":"+55 71 98778-1465","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557187781465","visitas":[],"email":""},{"nome":"Dra Moreira DRM","telefone":"+55 71 99913-2641","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199132641","visitas":[],"email":""},{"nome":"Dra Naila Nunes DRM","telefone":"+55 71 99979-8919","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199798919","visitas":[],"email":""},{"nome":"Dra Naraiana Nunes DRM","telefone":"+55 71 99310-4884","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557193104884","visitas":[],"email":""},{"nome":"Dra Ornela DRM","telefone":"+55 71 99257-0300","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557192570300","visitas":[],"email":""},{"nome":"Dra Pamela Martinelli DRM","telefone":"+55 71 99211-5208","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557192115208","visitas":[],"email":""},{"nome":"Dra Paola Guaraná DRM (Dermatologista)","telefone":"+55 21 96911-3665","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"5521969113665","visitas":[],"email":""},{"nome":"Dra Patricia Gutierrez Drm","telefone":"+55 71 99197-1010","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191971010","visitas":[],"email":""},{"nome":"Dra Patricia Montagna DRM","telefone":"+55 31 99285-7680","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"553192857680","visitas":[],"email":""},{"nome":"Dra Paula Barreto DRM AJU","telefone":"+55 79 99152-6362","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557991526362","visitas":[],"email":""},{"nome":"Dra Paula Leão DRM AJU","telefone":"+55 79 98128-6919","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557981286919","visitas":[],"email":""},{"nome":"Dra Petrusca Santana Drm IDAB","telefone":"+55 71 98144-9025","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557181449025","visitas":[],"email":""},{"nome":"Dra Pontes DRM","telefone":"+55 71 98167-6471","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557181676471","visitas":[],"email":""},{"nome":"Dra Rafaela Botelho DRM AJU","telefone":"+55 79 99816-7413","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557998167413","visitas":[],"email":""},{"nome":"Dra Raquel Mazzotti DRM AJU","org":"Dra Raquel Mazzotti","telefone":"+55 79 99924-2484","whatsapp_business_nome":"Dra Raquel Mazzotti","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557999242484","visitas":[],"email":""},{"nome":"Dra Renata Dorea FSA DRM","telefone":"+55 75 99906-2244","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557599062244","visitas":[],"email":""},{"nome":"Dra Renata Serravalle DRM","org":"Dra Renata Serravalle Felippi","telefone":"+55 71 99670-7722","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557196707722","whatsapp_business_descricao":"Dermatologista SBD, especialista em saúde e beleza da pele e do cabelo. Tratamentos em Tricologia, Dermatologia clínica, estética e Dermatologia pediátrica.","visitas":[],"email":"","whatsapp_business_nome":"Dra Renata Serravalle Felippi"},{"nome":"Dra Rita Nolasco DRM","telefone":"+55 71 98868-3941","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557188683941","visitas":[],"email":""},{"nome":"Dra Suyan Vasconcelos DRM AJU","telefone":"+55 79 98855-7868","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557988557868","visitas":[],"email":""},{"nome":"Dra Tais Valverde DRM","telefone":"+55 71 98193-3616","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557181933616","visitas":[],"email":""},{"nome":"Dra Talita DRM","telefone":"+55 71 98888-6174","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557188886174","visitas":[],"email":""},{"nome":"Dra Tati Lobo DRM","telefone":"+55 71 98198-1585","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557181981585","visitas":[],"email":""},{"nome":"Dra Tati Matos DRM","telefone":"+55 71 99663-8288","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557196638288","visitas":[],"email":""},{"nome":"Dra Tatiane Andrade DRM AJU","telefone":"+55 79 98129-4714","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557981294714","visitas":[],"email":""},{"nome":"Dra Thamara DRM AJU","telefone":"+55 79 99911-9950","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557999119950","visitas":[],"email":""},{"nome":"Dra Valentina Priori DRM AJU","telefone":"+55 79 99874-5003","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557998745003","visitas":[],"email":""},{"nome":"Dra Vanessa Freire DRM AJU","telefone":"+55 79 99924-2673","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557999242673","visitas":[],"email":""},{"nome":"Dra Vanessa Gurgel DRM Barreiras","telefone":"+55 77 98807-6992","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557788076992","visitas":[],"email":""},{"nome":"Dra Vanessa Pimentel DRM","telefone":"+55 71 98810-1316","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557188101316","visitas":[],"email":""},{"nome":"Dra Viviane Serravale DRM","telefone":"+55 71 99971-5688","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557199715688","visitas":[],"email":""},{"nome":"Dra Yasmin Drm Aracaju","telefone":"+55 79 99950-3151","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557999503151","visitas":[],"email":""},{"nome":"Dra. Renata Leite DRM","telefone":"+55 71 99164-0020","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191640020","nomes_alternativos":["Dra Renata Leite DRM"],"visitas":[],"email":""},{"nome":"Mariana De Oliveira DRM","telefone":"+55 71 99308-7382","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557193087382","visitas":[],"email":""},{"nome":"Renata Dermato","telefone":"+55 71 99167-1914","status":"Em Contato","arquivos_origem":["Dr_Orlando_Oliveira_DRM__e_outros_138_contatos.vcf"],"whatsapp_id":"557191671914","nomes_alternativos":["Dra Renata Brasileiro DRM"],"visitas":[],"email":""}];
+
+function initDashboard(){
+carregarDados(function(){var es=new Set(),os=new Set();
+DATA.forEach(function(i){var e=extractEspecialidade(i.nome);if(e)es.add(e);if(i.arquivos_origem)i.arquivos_origem.forEach(function(f){os.add(f)})});
+var sE=document.getElementById('filterEspec');Array.from(es).sort().forEach(function(e){var o=document.createElement('option');o.value=e;o.textContent=e;sE.appendChild(o)});
+var sO=document.getElementById('filterOrigem');Array.from(os).sort().forEach(function(o){var p=document.createElement('option');p.value=o;p.textContent=getOriginShort(o);sO.appendChild(p)});
+document.getElementById('searchName').addEventListener('input',renderData);
+document.getElementById('filterStatus').addEventListener('change',renderData);
+document.getElementById('filterEspec').addEventListener('change',renderData);
+document.getElementById('filterOrigem').addEventListener('change',renderData);
+document.getElementById('filterWA').addEventListener('change',renderData);
+document.getElementById('editStatus').addEventListener('change',function(){var v=this.value;document.getElementById('statusHelp').innerHTML=STATUS_FINAL[v]?'<strong>Contato marcado como '+v+'</strong> &mdash; o acompanhamento ser&aacute; encerrado.':'Alterar para <strong>Perdido</strong> ou <strong>Encerrado</strong> finaliza o acompanhamento.'});
+renderData();verificarServidor()})}
+
+function verificarServidor(){
+  var b=document.createElement('div');b.style.cssText='position:fixed;top:0;left:0;right:0;color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:600;z-index:9999;font-family:"DM Sans",sans-serif';
+  fetch(SERVER_URL+'/api/health').then(function(r){if(r.ok)return r.json();throw Error()}).then(function(j){
+    if(j.status==='ok'){b.style.background='#065f46';b.innerHTML='&#9989; Servidor local ativo &mdash; dados salvos no arquivo.';document.body.appendChild(b)}
+  }).catch(function(){
+    if(GH_TOKEN&&GH_REPO){fetch('https://api.github.com/repos/'+GH_REPO,{headers:{Authorization:'token '+GH_TOKEN}}).then(function(r){
+      if(r.ok){b.style.background='#065f46';b.innerHTML='&#9989; GitHub conectado &mdash; altera&ccedil;&otilde;es commitadas no reposit&oacute;rio.'}else{b.style.background='#92400e';b.innerHTML='&#9888; GitHub configurado, mas token inv&aacute;lido. <a href="#" onclick="abrirConfig();return false" style="color:#fff;text-decoration:underline">Ajustar</a>'}
+      document.body.appendChild(b)
+    }).catch(function(){b.style.background='#92400e';b.innerHTML='&#9888; GitHub offline. <a href="#" onclick="abrirConfig();return false" style="color:#fff;text-decoration:underline">Configurar</a>';document.body.appendChild(b)})}else{
+      b.style.background='#92400e';b.innerHTML='&#9888; Sem servidor local nem GitHub. Dados salvos apenas no navegador. <a href="#" onclick="abrirConfig();return false" style="color:#fff;text-decoration:underline">Configurar GitHub</a>';document.body.appendChild(b)
+    }
+  })
+}
+
+function abrirConfig(){
+  document.getElementById('cfgRepo').value=CFG.repo||'';
+  document.getElementById('cfgToken').value=CFG.token||'';
+  document.getElementById('cfgAutoDownload').checked=!!CFG.autoDownload;
+  var st=document.getElementById('configStatus');
+  if(GH_TOKEN&&GH_REPO){st.className='config-status ok';st.innerHTML='&#9989; GitHub configurado como <strong>'+GH_REPO+'</strong>'}
+  else{st.className='config-status warn';st.innerHTML='Configure seu reposit&oacute;rio e token do GitHub para commits autom&aacute;ticos.'}
+  abrirModal('configModal')
+}
+
+function salvarConfig(){
+  var repo=document.getElementById('cfgRepo').value.trim();
+  var token=document.getElementById('cfgToken').value.trim();
+  var ad=document.getElementById('cfgAutoDownload').checked;
+  if(repo&&!repo.includes('/')){alert('Formato inv&aacute;lido. Use: usuario/repo');return}
+  CFG={repo:repo,token:token,autoDownload:ad};GH_TOKEN=token;GH_REPO=repo;
+  localStorage.setItem('move_crm_cfg',JSON.stringify(CFG));
+  fecharModal('configModal');mostrarToast('Configura&ccedil;&atilde;o salva!');
+  var b=document.querySelector('div[style*="fixed;top:0"]');if(b)b.remove();
+  verificarServidor()
+}
+
+function testarConexaoGitHub(){
+  var repo=document.getElementById('cfgRepo').value.trim();
+  var token=document.getElementById('cfgToken').value.trim();
+  if(!repo||!token){alert('Preencha o reposit&oacute;rio e o token primeiro.');return}
+  var btn=document.getElementById('btnTestarGit');btn.textContent='Testando...';btn.disabled=true;
+  fetch('https://api.github.com/repos/'+repo,{headers:{Authorization:'token '+token}}).then(function(r){
+    if(r.ok){mostrarToast('Conex&atilde;o OK! Reposit&oacute;rio encontrado.','#065f46');document.getElementById('configStatus').className='config-status ok';document.getElementById('configStatus').innerHTML='&#9989; Conex&atilde;o estabelecida com <strong>'+repo+'</strong>'}
+    else if(r.status===401){alert('Token inv&aacute;lido ou sem permiss&atilde;o.')}
+    else if(r.status===404){alert('Reposit&oacute;rio n&atilde;o encontrado. Verifique o nome.')}
+    else{alert('Erro '+r.status+': '+r.statusText)}
+  }).catch(function(){alert('N&atilde;o foi poss&iacute;vel conectar ao GitHub. Verifique sua internet.')}).then(function(){btn.textContent='Testar Conex&atilde;o';btn.disabled=false})
+}
+function renderData(){
+var sn=document.getElementById('searchName').value.toLowerCase().trim();
+var fs=document.getElementById('filterStatus').value;
+var fe=document.getElementById('filterEspec').value;
+var fo=document.getElementById('filterOrigem').value;
+var fw=document.getElementById('filterWA').value;
+var tb=document.getElementById('tableBody');
+var mc=document.getElementById('mobileCardsBody');
+tb.innerHTML='';mc.innerHTML='';var fc=0,es=new Set(),tv=0,cem=0,cconv=0,cperd=0;
+DATA.forEach(function(item,idx){
+var status=item.status||'Em Contato';
+var esp=extractEspecialidade(item.nome);
+var to=fo===''||(item.arquivos_origem&&item.arquivos_origem.indexOf(fo)>=0);
+var tw=item.whatsapp_business_nome?true:false;
+var qv=item.visitas?item.visitas.length:0;tv+=qv;
+var mn=sn===''||item.nome.toLowerCase().indexOf(sn)>=0;
+var ms=fs===''||status===fs;
+var me=fe===''||esp===fe;var mo=fo===''||to;
+var mw=fw===''||(fw==='com'&&tw)||(fw==='sem'&&!tw);
+if(mn&&ms&&me&&mo&&mw){
+fc++;if(esp)es.add(esp);if(status==='Em Contato')cem++;if(status==='Convertido')cconv++;if(status==='Perdido')cperd++;
+var fp=normalizePhone(item.telefone);
+var wi=item.whatsapp_id;var wl=wi?'https://wa.me/'+wi:null;
+var dd=getDDD(item.telefone);
+var od=item.arquivos_origem&&item.arquivos_origem.length>0?getOriginShort(item.arquivos_origem[0]):'-';
+var em=item.email||'';
+var isFinal=STATUS_FINAL[status]?' status-'+status.toLowerCase():'';
+var ah=item.nomes_alternativos?'<br><span style="font-size:11px;color:var(--text-muted)">'+item.nomes_alternativos.join(', ')+'</span>':'';
+var tr=document.createElement('tr');
+tr.className='status-'+status.toLowerCase();
+tr.innerHTML='<td style="font-weight:500;color:var(--crimson);white-space:normal;min-width:180px">'+item.nome+ah+'</td><td>'+statusBadge(status)+'</td><td>'+(esp?'<span class="badge-espec">'+esp+'</span>':'-')+'</td><td style="font-family:monospace;font-weight:bold">'+(wl?'<a href="'+wl+'" target="_blank" class="whatsapp-link">'+fp+'</a>':fp)+(dd?'<br><span style="font-size:10px;color:var(--text-muted)">DDD '+dd+'</span>':'')+'</td><td style="font-size:13px">'+(em||'<span style="color:var(--text-muted)">-</span>')+'</td><td style="text-align:center"><button class="btn-visit" onclick="abrirVisitas('+idx+')">'+qv+' visita'+(qv!==1?'s':'')+'</button></td><td><button class="btn-icon" onclick="abrirEdicao('+idx+')" title="Editar contato">&#9998; Editar</button></td>';
+tr.addEventListener('click',function(e){if(e.target.tagName!=='BUTTON'&&e.target.tagName!=='A')abrirVisitas(idx)});
+tb.appendChild(tr);
+var cd=document.createElement('div');
+cd.className='mobile-contact-card status-'+status.toLowerCase();
+cd.innerHTML='<div class="mobile-card-header"><h3 class="mobile-doctor-name">'+item.nome+'</h3><p class="mobile-doctor-sub">'+statusBadge(status)+' &middot; '+(esp||'Especialidade n&atilde;o identificada')+(dd?' &middot; DDD '+dd:'')+'</p></div><div class="mobile-card-body"><p><strong>Telefone:</strong> '+fp+'</p>'+(em?'<p><strong>Email:</strong> '+em+'</p>':'')+(tw?'<p><strong>WhatsApp Business:</strong> '+item.whatsapp_business_nome+'</p>':'')+(item.org?'<p><strong>Organiza&ccedil;&atilde;o:</strong> '+item.org+'</p>':'')+(item.nomes_alternativos?'<p class="alt-names">Tamb&eacute;m conhecido como: '+item.nomes_alternativos.join(', ')+'</p>':'')+'<p style="font-size:12px;color:var(--text-muted)">Origem: '+od+'</p><p><span class="btn-visit" style="display:inline-block">'+qv+' visita'+(qv!==1?'s':'')+'</span></p></div><div class="mobile-card-actions">'+(wl?'<a href="'+wl+'" target="_blank" class="btn-action btn-call">WhatsApp</a>':'<span class="btn-action" style="background:#eee;color:#999;cursor:default">Sem WhatsApp</span>')+'<button class="btn-action btn-edit-card" onclick="abrirEdicao('+idx+')">&#9998; Editar</button><button class="btn-action btn-email" onclick="abrirVisitas('+idx+')">&#128203; Visitas</button></div>';
+cd.addEventListener('click',function(e){if(e.target.tagName!=='BUTTON'&&e.target.tagName!=='A')abrirVisitas(idx)});
+mc.appendChild(cd)
+}});
+document.getElementById('kpiTotal').textContent=fc;
+document.getElementById('kpiEmContato').textContent=cem;
+document.getElementById('kpiConvertidos').textContent=cconv;
+document.getElementById('kpiPerdidos').textContent=cperd;
+document.getElementById('emptyMessage').style.display=fc===0?'block':'none'}
+
+function abrirVisitas(idx){
+currentContactIndex=idx;var c=DATA[idx];
+var isFinal=STATUS_FINAL[c.status]?true:false;
+document.getElementById('visitaModalTitle').textContent='Visitas - '+c.nome;
+document.getElementById('visitaContactInfo').innerHTML='<div class="info-item"><strong>Telefone:</strong> '+normalizePhone(c.telefone)+'</div><div class="info-item"><strong>Email:</strong> '+(c.email||'-')+'</div><div class="info-item"><strong>Status:</strong> '+statusBadge(c.status||'Em Contato')+'</div>';
+document.getElementById('novavisitaSection').style.display=isFinal?'none':'block';
+if(isFinal){document.getElementById('visitaList').innerHTML='';renderVisitas();}
+else{document.getElementById('visitaData').value=new Date().toISOString().split('T')[0];document.getElementById('visitaTipo').value='Presencial';document.getElementById('visitaObs').value='';renderVisitas();}
+abrirModal('visitaModal')}
+
+function renderVisitas(){
+var container=document.getElementById('visitaList');var c=DATA[currentContactIndex];var v=c.visitas||[];
+if(v.length===0){container.innerHTML='<div class="empty-visits">Nenhuma visita registrada ainda.</div>';return}
+var h='<div class="visit-list">';
+for(var i=v.length-1;i>=0;i--){var x=v[i];h+='<div class="visit-item"><div><span class="visit-date">'+x.data+'</span><span class="visit-type">'+x.tipo+'</span></div>'+(x.observacao?'<div class="visit-notes">'+x.observacao+'</div>':'')+'<div class="visit-actions"><button class="btn-del-visit" onclick="removerVisita('+i+')">Excluir</button></div></div>'}
+h+='</div>';container.innerHTML=h}
+
+function salvarVisita(){
+if(STATUS_FINAL[DATA[currentContactIndex].status]){alert('Este contato est&aacute; marcado como '+DATA[currentContactIndex].status+'. Altere o status para registrar novas visitas.');return}
+var data=document.getElementById('visitaData').value;
+var tipo=document.getElementById('visitaTipo').value;
+var obs=document.getElementById('visitaObs').value.trim();
+if(!data){alert('Selecione a data da visita.');return}
+var c=DATA[currentContactIndex];if(!c.visitas)c.visitas=[];
+c.visitas.push({data:data,tipo:tipo,observacao:obs});
+salvarEExportar();renderVisitas();renderData();mostrarToast('Visita registrada!');
+document.getElementById('visitaData').value=new Date().toISOString().split('T')[0];
+document.getElementById('visitaTipo').value='Presencial';document.getElementById('visitaObs').value=''}
+
+function removerVisita(idx){if(!confirm('Excluir esta visita?'))return;DATA[currentContactIndex].visitas.splice(idx,1);salvarEExportar();renderVisitas();renderData();mostrarToast('Visita exclu&iacute;da!')}
+
+function abrirEdicao(idx){
+currentContactIndex=idx;var c=DATA[idx];
+document.getElementById('editNome').value=c.nome;
+document.getElementById('editTelefone').value=c.telefone||'';
+document.getElementById('editEmail').value=c.email||'';
+document.getElementById('editStatus').value=c.status||'Em Contato';
+document.getElementById('statusHelp').innerHTML=STATUS_FINAL[c.status]?'<strong>Contato marcado como '+c.status+'</strong> &mdash; o acompanhamento ser&aacute; encerrado.':'Alterar para <strong>Perdido</strong> ou <strong>Encerrado</strong> finaliza o acompanhamento.';
+abrirModal('editarModal')}
+
+function salvarEdicao(){
+var c=DATA[currentContactIndex];
+c.nome=document.getElementById('editNome').value.trim();
+c.telefone=document.getElementById('editTelefone').value.trim();
+c.email=document.getElementById('editEmail').value.trim();
+c.status=document.getElementById('editStatus').value;
+if(!c.nome){alert('O nome n&atilde;o pode ficar vazio.');return}
+salvarEExportar();renderData();fecharModal('editarModal');mostrarToast('Contato atualizado!')}
+
+function abrirModal(id){document.getElementById(id).classList.add('active')}
+function fecharModal(id){document.getElementById(id).classList.remove('active')}
+document.addEventListener('click',function(e){if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('active')})
+
+function importJSON(event){var file=event.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){try{var imported=JSON.parse(e.target.result);if(!Array.isArray(imported)||!imported.length){alert('Arquivo JSON inv&aacute;lido.');return}DATA=imported;salvarEExportar();renderData();fecharModal('visitaModal');fecharModal('editarModal');mostrarToast('Dados importados com sucesso! ('+DATA.length+' contatos)');}catch(err){alert('Erro ao ler o arquivo JSON: '+err.message)};event.target.value=''};reader.readAsText(file)}
+
+function mostrarToast(msg,cor){cor=cor||'#065f46';var t=document.createElement('div');t.style.cssText='position:fixed;bottom:30px;right:30px;background:'+cor+';color:#fff;padding:14px 24px;border-radius:8px;font-weight:600;font-size:14px;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.25);font-family:"DM Sans",sans-serif;transition:opacity .3s';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.remove()},400)},2200)}
+
+function clearFilters(){document.getElementById('searchName').value='';document.getElementById('filterStatus').value='';document.getElementById('filterEspec').value='';document.getElementById('filterOrigem').value='';document.getElementById('filterWA').value='';renderData()}
+
+window.onload=initDashboard;
+</script>
+</body>
+</html>
