@@ -173,6 +173,7 @@ h1.el-titulo{font-size:1.6rem}
 <div class="sidebar-footer">
 <button class="btn-export" onclick="exportJSON()">&#11015; Exportar JSON</button>
 <button class="btn-export" onclick="document.getElementById('importFileInput').click()" style="margin-top:8px;background:#c8922a">&#128194; Importar JSON</button>
+<button class="btn-gear" onclick="sincronizar()" style="background:rgba(255,255,255,.1);border-color:var(--gold)">&#128260; Sincronizar</button>
 <button class="btn-gear" onclick="abrirConfig()">&#9881; Configurar GitHub</button>
 </div>
 <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importJSON(event)">
@@ -400,6 +401,15 @@ function salvarConfig(){
   verificarServidor()
 }
 
+function sincronizar(){
+  mostrarToast('Sincronizando...','#2563eb');var cb=Date.now();
+  fetch('contatos_consolidado.json?_='+cb).then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(d){
+    DATA=d;normalizarDados();salvarStorage();renderData();mostrarToast('Sincronizado! '+DATA.length+' contatos');
+  }).catch(function(){
+    if(GH_TOKEN&&GH_REPO){fetch('https://api.github.com/repos/'+GH_REPO+'/contents/'+GH_PATH,{headers:{Authorization:'token '+GH_TOKEN,'Accept':'application/vnd.github.v3+json'}}).then(function(r){if(!r.ok)throw Error();return r.json()}).then(function(j){var c=j.content.replace(/\n/g,'');while(c.length%4!==0)c+='=';DATA=JSON.parse(atob(c));normalizarDados();salvarStorage();renderData();mostrarToast('Sincronizado via API! '+DATA.length+' contatos')}).catch(function(){mostrarToast('Erro ao sincronizar','#92400e')})}else{mostrarToast('Erro ao sincronizar','#92400e')}
+  })
+}
+
 function testarConexaoGitHub(){
   var repo=document.getElementById('cfgRepo').value.trim();
   var token=document.getElementById('cfgToken').value.trim();
@@ -517,6 +527,7 @@ function mostrarToast(msg,cor){cor=cor||'#065f46';var t=document.createElement('
 function clearFilters(){document.getElementById('searchName').value='';document.getElementById('filterStatus').value='';document.getElementById('filterEspec').value='';document.getElementById('filterOrigem').value='';document.getElementById('filterWA').value='';renderData()}
 
 window.onload=initDashboard;
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&DATA)sincronizar()});
 </script>
 </body>
 </html>
