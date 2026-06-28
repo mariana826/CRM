@@ -366,18 +366,17 @@ document.getElementById('editStatus').addEventListener('change',function(){var v
 renderData();verificarServidor()})}
 
 function verificarServidor(){
-  var b=document.createElement('div');b.style.cssText='position:fixed;top:0;left:0;right:0;color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:600;z-index:9999;font-family:"DM Sans",sans-serif';
   fetch(SERVER_URL+'/api/health').then(function(r){if(r.ok)return r.json();throw Error()}).then(function(j){
-    if(j.status==='ok'){b.style.background='#065f46';b.innerHTML='&#9989; Servidor local ativo &mdash; dados salvos no arquivo.';document.body.appendChild(b)}
+    if(j.status==='ok'){}
   }).catch(function(){
     if(GH_TOKEN&&GH_REPO){fetch('https://api.github.com/repos/'+GH_REPO,{headers:{Authorization:'token '+GH_TOKEN}}).then(function(r){
-      if(r.ok){b.style.background='#065f46';b.innerHTML='&#9989; GitHub conectado &mdash; altera&ccedil;&otilde;es commitadas no reposit&oacute;rio.'}else{b.style.background='#92400e';b.innerHTML='&#9888; GitHub configurado, mas token inv&aacute;lido. <a href="#" onclick="abrirConfig();return false" style="color:#fff;text-decoration:underline">Ajustar</a>'}
-      document.body.appendChild(b)
-    }).catch(function(){b.style.background='#92400e';b.innerHTML='&#9888; GitHub offline. <a href="#" onclick="abrirConfig();return false" style="color:#fff;text-decoration:underline">Configurar</a>';document.body.appendChild(b)})}else{
-      b.style.background='#92400e';b.innerHTML='&#9888; Sem servidor local nem GitHub. Dados salvos apenas no navegador. <a href="#" onclick="abrirConfig();return false" style="color:#fff;text-decoration:underline">Configurar GitHub</a>';document.body.appendChild(b)
+      if(r.ok){}else{mostrarAviso('Token inv&aacute;lido. <a href="#" onclick="abrirConfig();return false" style="color:#fff;text-decoration:underline">Ajustar</a>')}
+    }).catch(function(){mostrarAviso('GitHub offline. <a href="#" onclick="abrirConfig();return false" style="color:#fff;text-decoration:underline">Configurar</a>')})}else{
+      mostrarAviso('Sem servidor nem GitHub. <a href="#" onclick="abrirConfig();return false" style="color:#fff;text-decoration:underline">Configurar</a>')
     }
   })
 }
+function mostrarAviso(h){var b=document.createElement('div');b.style.cssText='position:fixed;top:0;left:0;right:0;background:#92400e;color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:600;z-index:9999;font-family:"DM Sans",sans-serif';b.innerHTML='&#9888; '+h;document.body.appendChild(b)}
 
 function abrirConfig(){
   document.getElementById('cfgRepo').value=CFG.repo||'';
