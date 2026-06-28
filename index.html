@@ -33,6 +33,9 @@ h1.el-titulo{font-family:'Playfair Display',Georgia,serif;font-size:2.2rem;font-
 .cards-grid{display:flex;flex-wrap:wrap;gap:20px;width:100%}
 .card-container{flex:1;min-width:200px;display:flex}
 .el-quadro{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:15px;box-shadow:0 4px 12px rgba(0,0,0,.03);border-top:3px solid var(--crimson-mid);width:100%;display:flex;flex-direction:column;justify-content:center}
+.el-quadro.clickable{cursor:pointer;transition:.2s}
+.el-quadro.clickable:hover{border-color:var(--gold);box-shadow:0 4px 16px rgba(200,146,42,.15)}
+.el-quadro.clickable.active{border-top-color:var(--gold);background:#fefcf7}
 .el-quadro-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:.4em}
 .el-quadro-value{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;margin:0;color:var(--crimson);line-height:1}
 .table-section{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,.03);overflow:hidden;display:flex;flex-direction:column}
@@ -186,6 +189,7 @@ h1.el-titulo{font-size:1.6rem}
 <div class="card-container"><div class="el-quadro"><div class="el-quadro-title">Em Contato</div><div class="el-quadro-value" id="kpiEmContato">0</div></div></div>
 <div class="card-container"><div class="el-quadro"><div class="el-quadro-title">Convertidos</div><div class="el-quadro-value" id="kpiConvertidos">0</div></div></div>
 <div class="card-container"><div class="el-quadro"><div class="el-quadro-title">Perdidos</div><div class="el-quadro-value" id="kpiPerdidos">0</div></div></div>
+<div class="card-container"><div class="el-quadro clickable" id="kpiComVisita" onclick="toggleFiltroVisita()"><div class="el-quadro-title">Com Visita</div><div class="el-quadro-value" id="kpiComVisitaValor">0</div></div></div>
 </div>
 <div class="table-section">
 <div class="table-wrapper">
@@ -314,7 +318,7 @@ function getDDD(t){if(!t)return'';var m=t.match(/\((\d{2})\)/);return m?m[1]:''}
 
 function statusBadge(s){var c=STATUS_CLASS[s]||'s-contato';return'<span class="badge-status '+c+'">'+s+'</span>'}
 
-var GH_TOKEN='',GH_REPO='',GH_PATH='contatos_consolidado.json',CFG={token:'',repo:'',autoDownload:false};
+var GH_TOKEN='',GH_REPO='',GH_PATH='contatos_consolidado.json',CFG={token:'',repo:'',autoDownload:false},filterComVisita=false;
 try{CFG=Object.assign(CFG,JSON.parse(localStorage.getItem('move_crm_cfg')||'{}'));GH_TOKEN=CFG.token;GH_REPO=CFG.repo}catch(e){}
 
 function carregarDados(cb){
@@ -428,6 +432,7 @@ var fs=document.getElementById('filterStatus').value;
 var fe=document.getElementById('filterEspec').value;
 var fo=document.getElementById('filterOrigem').value;
 var fw=document.getElementById('filterWA').value;
+var fv=filterComVisita;
 var tb=document.getElementById('tableBody');
 var mc=document.getElementById('mobileCardsBody');
 tb.innerHTML='';mc.innerHTML='';var fc=0,es=new Set(),tv=0,cem=0,cconv=0,cperd=0;
@@ -436,12 +441,12 @@ var status=item.status||'Em Contato';
 var esp=extractEspecialidade(item.nome);
 var to=fo===''||(item.arquivos_origem&&item.arquivos_origem.indexOf(fo)>=0);
 var tw=item.whatsapp_business_nome?true:false;
-var qv=item.visitas?item.visitas.length:0;tv+=qv;
+var qv=item.visitas?item.visitas.length:0;tv+=qv;var hv=qv>0;
 var mn=sn===''||item.nome.toLowerCase().indexOf(sn)>=0;
 var ms=fs===''||status===fs;
 var me=fe===''||esp===fe;var mo=fo===''||to;
 var mw=fw===''||(fw==='com'&&tw)||(fw==='sem'&&!tw);
-if(mn&&ms&&me&&mo&&mw){
+if(mn&&ms&&me&&mo&&mw&&(!fv||hv)){
 fc++;if(esp)es.add(esp);if(status==='Em Contato')cem++;if(status==='Convertido')cconv++;if(status==='Perdido')cperd++;
 var fp=normalizePhone(item.telefone);
 var wi=item.whatsapp_id;var wl=wi?'https://wa.me/'+wi:null;
@@ -465,6 +470,9 @@ document.getElementById('kpiTotal').textContent=fc;
 document.getElementById('kpiEmContato').textContent=cem;
 document.getElementById('kpiConvertidos').textContent=cconv;
 document.getElementById('kpiPerdidos').textContent=cperd;
+var totalComVisita=DATA.filter(function(i){return i.visitas&&i.visitas.length>0}).length;
+document.getElementById('kpiComVisitaValor').textContent=totalComVisita;
+document.getElementById('kpiComVisita').classList.toggle('active',filterComVisita);
 document.getElementById('emptyMessage').style.display=fc===0?'block':'none'}
 
 function abrirVisitas(idx){
@@ -524,7 +532,9 @@ function importJSON(event){var file=event.target.files[0];if(!file)return;var re
 
 function mostrarToast(msg,cor){cor=cor||'#065f46';var t=document.createElement('div');t.style.cssText='position:fixed;bottom:30px;right:30px;background:'+cor+';color:#fff;padding:14px 24px;border-radius:8px;font-weight:600;font-size:14px;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.25);font-family:"DM Sans",sans-serif;transition:opacity .3s';t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.style.opacity='0';setTimeout(function(){t.remove()},400)},2200)}
 
-function clearFilters(){document.getElementById('searchName').value='';document.getElementById('filterStatus').value='';document.getElementById('filterEspec').value='';document.getElementById('filterOrigem').value='';document.getElementById('filterWA').value='';renderData()}
+function clearFilters(){filterComVisita=false;document.getElementById('searchName').value='';document.getElementById('filterStatus').value='';document.getElementById('filterEspec').value='';document.getElementById('filterOrigem').value='';document.getElementById('filterWA').value='';renderData()}
+
+function toggleFiltroVisita(){filterComVisita=!filterComVisita;if(filterComVisita){document.getElementById('searchName').value='';document.getElementById('filterStatus').value='';document.getElementById('filterEspec').value='';document.getElementById('filterOrigem').value='';document.getElementById('filterWA').value=''}renderData()}
 
 window.onload=initDashboard;
 document.addEventListener('visibilitychange',function(){if(!document.hidden&&DATA)sincronizar()});
