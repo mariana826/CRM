@@ -27,7 +27,13 @@
       "Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"
     ],
     "whatsapp_id": "557191957685",
-    "visitas": [],
+    "visitas": [
+      {
+        "data": "2026-06-28",
+        "tipo": "Presencial",
+        "observacao": "Teste"
+      }
+    ],
     "email": ""
   },
   {
