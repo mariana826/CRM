@@ -100,7 +100,13 @@
       "Dr_Antonio_Carlos_Martins___CLG__e_outros_12_contatos.vcf"
     ],
     "whatsapp_id": "557191469045",
-    "visitas": [],
+    "visitas": [
+      {
+        "data": "2026-07-21",
+        "tipo": "WhatsApp",
+        "observacao": "2 mensagens enviadas"
+      }
+    ],
     "email": ""
   },
   {
